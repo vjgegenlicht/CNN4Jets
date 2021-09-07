@@ -39,19 +39,23 @@ params = {
 'image_output_path'     : './images',
 
 'intensity_measure'     : 'pt',
-'n_pixel'               : 25,
-'eta_range'             : [-1, 1],
-'phi_range'             : [-np.pi/4, np.pi/4],
+'n_pixel'               : 40,
+'eta_range'             : [-4, 4],
+'phi_range'             : [-np.pi, np.pi],
 
 'jet_preproc_steps'     : ['phi_alignment','centering'],
-'image_preproc_steps'   : ['narmalization'],
+'image_preproc_steps'   : ['normalization'],
+'train_split'           : 0.7,
+'batch_size'            : 1000, 
 
-'n_images'              : 5,
+'n_images'              : 10,
 
-'lr'                    : 1.e-4,
+'lr'                    : 1.e-3,
 'betas'                 : [0.9,0.99],
+'L2'                    : 1.e-3,
+'p_drop'                : 0,
 
-'n_epochs'              : 1
+'n_epochs'              : 100
 }
 
 main(params)

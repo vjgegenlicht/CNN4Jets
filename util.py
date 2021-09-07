@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+from sklearn.model_selection import train_test_split
 from constit2images import *
 
 def load_data(input_path):
@@ -21,6 +22,7 @@ class DataSet:
                 data    : [dict]    dictionary holding (class, data) pairs
                 classes : [list]    list holding the strings of classes
         '''
+        # Parameters
         self.n_classes  = len(classes)
         self.params     = params
         self.device     = data_store['device']
@@ -28,25 +30,38 @@ class DataSet:
         self.data       = data
         self.batch_size = params.get('batch_size', 1024)
         self.n_pixel    = params['n_pixel']
+        self.train_split      = params.get('train_split', 0.5)
         
+        # Create image data in correct format
         self.unify_size()
         self.images     = self.trasform_to_images()
         self.labels, self.label2set     = self.generate_labels()
-        
         self.X = np.array(self.images).reshape(self.n_classes*self.N, 1, self.n_pixel, self.n_pixel)
         self.y = np.array(self.labels).reshape(self.n_classes*self.N)
         self.X = torch.from_numpy(self.X).to(self.device).to(torch.float32)
-        self.y = torch.from_numpy(self.y).to(self.device).to(torch.float32)
+        self.y = torch.from_numpy(self.y).to(self.device).to(torch.long)
         self.X.requires_grad    = True 
-        self.y.requires_grad    = True
         
+        # Split in ([train,validation], [test])
+        idx             = np.random.permutation(self.X.shape[0])
+        self.N_train    = int(9/10 *self.train_split * self.N * self.n_classes)
+        self.N_val      = int(1/10 *self.train_split * self.N * self.n_classes)
+        self.N_test     = self.N - self.N_train - self.N_val
+        idx_train       = idx[:self.N_train] 
+        idx_val         = idx[self.N_train:self.N_train+self.N_val]
+        idx_test        = idx[self.N_train+self.N_val:]
+        self.X_train, self.y_train    = self.X[idx_train], self.y[idx_train]
+        self.X_val, self.y_val    = self.X[idx_val], self.y[idx_val]
+        self.X_test, self.y_test      = self.X[idx_test], self.y[idx_test]
+        print(self.y_train.shape, self.y_val.shape, self.y_test.shape)
         
-    def __call__(self, idx):
+    def __call__(self, mode, idx):
+        X, y = eval('self.X_'+mode), eval('self.y_'+mode)
         if idx == 0:
-            self.permutation = np.random.permutation(self.n_classes*self.N)
+            self.permutation = np.random.permutation(y.shape[0])
         batch_idx   = self.permutation[idx*self.batch_size:(idx+1)*self.batch_size]
-        batch_X     = self.X[batch_idx]
-        batch_y     = self.y[batch_idx]
+        batch_X     = X[batch_idx]
+        batch_y     = y[batch_idx]
         return batch_X, batch_y
      
             
@@ -69,8 +84,8 @@ class DataSet:
             jets    = self.data[set]
 
             # Extract observables from jets array
-            E       = jets[:,:,0]
-            px      = jets[:,:,1]
+            E       = jets[:,:,1]
+            px      = jets[:,:,0]
             py      = jets[:,:,2]
             pz      = jets[:,:,3]
 
@@ -85,7 +100,6 @@ class DataSet:
             pz_jet  = pz.sum(axis=1)
             pt_jet  = compute_pt(px_jet, py_jet)
             m_jet   = compute_m(E_jet, px_jet, py_jet, pz_jet)
-
             intensity = eval(self.params.get('intensity_measure', 'pt'))
 
             # Jet Preprocessing
