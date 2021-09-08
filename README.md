@@ -1,6 +1,6 @@
 # CNN4Jets - Convolutional neural network (CNN) for jet classification
 ## Quickstart:
-To create and train a model, execute the **main.py** file in the shell:
+To create and train a model, execute the *main.py* file in the shell:
 
 `$ python3 main.py`
 
