@@ -36,6 +36,7 @@ class DataSet:
         self.unify_size()
         self.images     = self.trasform_to_images()
         self.labels, self.label2set     = self.generate_labels()
+        data_store['label2set'] = self.label2set
         self.X = np.array(self.images).reshape(self.n_classes*self.N, 1, self.n_pixel, self.n_pixel)
         self.y = np.array(self.labels).reshape(self.n_classes*self.N)
         self.X = torch.from_numpy(self.X).to(self.device).to(torch.float32)
@@ -46,15 +47,20 @@ class DataSet:
         idx             = np.random.permutation(self.X.shape[0])
         self.N_train    = int(9/10 *self.train_split * self.N * self.n_classes)
         self.N_val      = int(1/10 *self.train_split * self.N * self.n_classes)
-        self.N_test     = self.N - self.N_train - self.N_val
+        self.N_test     = self.n_classes * self.N - self.N_train - self.N_val
+        print(f'Datasplit: \n \
+        Total / Train / Validation / Test \n \
+        {self.N} / {self.N_train} / {self.N_val} / {self.N_test}')
         idx_train       = idx[:self.N_train] 
         idx_val         = idx[self.N_train:self.N_train+self.N_val]
         idx_test        = idx[self.N_train+self.N_val:]
         self.X_train, self.y_train    = self.X[idx_train], self.y[idx_train]
         self.X_val, self.y_val    = self.X[idx_val], self.y[idx_val]
         self.X_test, self.y_test      = self.X[idx_test], self.y[idx_test]
-        print(self.y_train.shape, self.y_val.shape, self.y_test.shape)
         
+        self.save_test()
+        self.plot_test()
+
     def __call__(self, mode, idx):
         X, y = eval('self.X_'+mode), eval('self.y_'+mode)
         if idx == 0:
@@ -64,7 +70,47 @@ class DataSet:
         batch_y     = y[batch_idx]
         return batch_X, batch_y
      
-            
+
+    def save_test(self):
+        '''Saves the test data set for further use.'''
+        print('Saving test image data.')
+        output_path = self.params['output_path']
+        for set in self.label2set.items():
+            os.makedirs(output_path + '/image_data/' + set[1], exist_ok=True) 
+        for i in range(self.N_test):
+            label   = self.y_test[i]
+            set     = self.label2set[label.item()]
+            np.save(output_path + '/image_data/' + set + '/X_test_{}'.format(i), self.X_test[i].detach().to(device='cpu').numpy())
+            np.save(output_path + '/image_data/' + set + '/y_test_{}'.format(i), self.y_test[i].detach().to(device='cpu').numpy())
+    
+    def plot_test(self):
+        print('Plotting test images.')
+        '''Plots some of the generated detector images.'''
+        output_path = self.params['output_path']
+        for set in self.label2set.items():
+            os.makedirs(output_path + '/images/' + set[1], exist_ok=True) 
+
+        n_pixel     = self.params.get('n_pixel', 10)
+        eta_range   = self.params['eta_range']
+        phi_range   = self.params['phi_range']
+       
+        plt.rc("text", usetex=True)
+        plt.rc("font", family="serif")
+        plt.rc("text.latex", preamble=r"\usepackage{amsmath}")
+
+        for i in range(self.N_test):
+            label   = self.y_test[i]
+            set     = self.label2set[label.item()]
+            image   = self.X_test[i].detach().cpu().numpy().squeeze()
+            plt.figure(figsize=(6, 6), dpi=160) 
+            plt.imshow(image)
+            plt.xlabel(r"$\eta$", fontsize=14)
+            plt.ylabel(r"$\phi$", fontsize=14)
+            plt.xticks(np.linspace(0,n_pixel-1,5), np.round(np.linspace(eta_range[0],eta_range[1], 5),1))
+            plt.yticks(np.linspace(0,n_pixel-1,5), np.round(np.linspace(phi_range[0],phi_range[1], 5),1))
+            plt.savefig(output_path + '/images/' + set + "/img_test_{}.png".format(i), dpi=160, format="png")
+            plt.close()
+        
     def unify_size(self):
         '''Unifies the size of each class to the size of the smallest data set.'''
         sizes   = []
@@ -112,7 +158,7 @@ class DataSet:
             images_preproc = image_preprocessing(images, self.params)
 
             # Plot some images
-            plot_images(images_preproc, set, self.params)
+            #plot_images(images_preproc, set, self.params)
 
             imgs.append(images_preproc)
             

@@ -80,7 +80,7 @@ def compute_m(E, px, py, pz):
             py      : [array]   array of momenta in y-direction
             pz      : [array]   array of momenta in z-direction
     '''
-    return np.sqrt( np.clip( (E**2-px**2-py**2-pz**2), 0, np.inf ) )
+    return np.sqrt(E**2-px**2-py**2-pz**2)
     
 def compute_pt(px, py):
     ''' Computes transverse momentum from momenta in x and y direction.
@@ -129,15 +129,7 @@ def plot_images(images, set, params):
             params  : [dict]    dictionary holding the parameters
     '''
     image_output_path = params.get('image_output_path', './images/')
-    try:
-        os.mkdir(image_output_path)
-    except FileExistsError:
-        pass
-    try:
-        os.mkdir(image_output_path + '/' + set)
-    except FileExistsError:
-        pass
-    
+    os.makedirs(image_output_path + '/images/' + set, exist_ok=True) 
 
     n_pixel     = params.get('n_pixel', 10)
     eta_range   = params['eta_range']
@@ -147,6 +139,13 @@ def plot_images(images, set, params):
     #plt.rc("text", usetex=True)
     #plt.rc("font", family="serif")
     #plt.rc("text.latex", preamble=r"\usepackage{amsmath}")
+    plt.imshow(np.mean(images, axis=0))
+    plt.title("Average", fontsize=16)
+    plt.xlabel("eta", fontsize=14)
+    plt.ylabel("phi", fontsize=14)
+    plt.xticks(np.linspace(0,n_pixel-1,5), np.round(np.linspace(eta_range[0],eta_range[1], 5),1))
+    plt.yticks(np.linspace(0,n_pixel-1,5), np.round(np.linspace(phi_range[0],phi_range[1], 5),1))
+    plt.savefig(image_output_path + "/" + set + "/average", dpi=160, format="png")
 
     for i in range(params.get('n_images', 10)):
         plt.imshow(images[i])
