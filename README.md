@@ -18,7 +18,7 @@ Now the following things will happen:
 6. Then a training loop will start.
 7. The model will be saved in a *model* file in the folder: **./model**
 
-Now a model exists, that can be used for the classification itself. Creating and training a model will no be done on the computer in the museum. Instead a model file and all additional data will be provided beforehand. 
+Now a model exists, that can be used for the classification itself. Creating and training a model will not be done on the computer in the museum. Instead a model file and all additional data will be provided beforehand. 
 
 To classify a image, two parser arguments exist:
 
