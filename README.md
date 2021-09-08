@@ -9,10 +9,12 @@
 
 -[x] Preprocessing of the jet images
 
--[] Train/test split in Dataset
+-[x] Train/test split in Dataset
 
--[] Write model architecture
+-[x] Write model architecture
 
--[] Write training loop
+-[x] Write training loop
 
--[] Write validation
+-[x] Write validation
+
+-[] Additional learning rate scheduler
