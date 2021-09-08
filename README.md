@@ -18,13 +18,13 @@ Now the following things will happen:
 6. Then a training loop will start.
 7. The model will be saved in a *model* file in the folder: **./model**
 
-Now a model exists, that can be used for the classification itself. Creating and training a model will not be done on the computer in the museum. Instead a model file and all additional data will be provided beforehand. 
+Now a model exists, that can be used for the classification itself. Creating and training a model will not be done on the computer in the museum. Instead, a model file and all additional data will be provided beforehand. 
 
 To classify a image, two parser arguments exist:
 
 `--model=<path>` and `--classify=<path>`.
 
-Using these argument, one can then choose an image file from **./model/image_data** and classify it. For example we can classify an image of the *ttbar* dataset:
+Using these arguments, one can then choose an image file from **./model/image_data** and classify it. For example, we can classify an image of the *ttbar* dataset:
 
 `$ python3 main.py --model=./model/model --classify=./model/image_data/ttbar/X_test_i.npy`.
 
