@@ -21,7 +21,7 @@ def main(params):
     data_store["device"] = device
     
     # Load the data
-    print('Loading data.')
+    print('» Loading data.')
     data    = {}
     classes = []
     for set in list(params.get('input_paths',{}).keys()):
@@ -30,7 +30,7 @@ def main(params):
     n_classes   = len(classes) 
     
     # Create the CNN model
-    print('Creating model.')
+    print('» Creating model.')
     model = cnn(n_classes, params, data_store)
 
     # Create output folder
@@ -40,15 +40,19 @@ def main(params):
     if args.classify is None:
         # Load the model
         if not args.model is None:
-            print('Loading model state.')
+            print('» Loading model state.')
             model.load(args.model)
 
         # Make data set
-        print('Creating dataset.')
+        print('» Creating dataset.')
         Dataset     = DataSet(data, classes, params, data_store)    
+        
+        #Set optimizer
+        print('» Setting optimizer.')
+        model.set_optimizer(Dataset)
     
         # Train the model
-        print('Training model.')
+        print('» Training model.')
         model.train(Dataset)
 
         # Generate predictions for the test data set
@@ -62,10 +66,11 @@ def main(params):
             raise ImportError('Please specify a model for the classification using the argument [--model=<path>].')
         
         # Load model
-        print('Loading model state.')
-        model.load(args.model)
+        print('» Loading model state.')
+        model.load(args.model, load_optim=False)
         
         # Load the instance
+        print('» Loading Instance')
         instance = np.load(args.classify)
         try:
             instance = torch.from_numpy(instance)
@@ -77,11 +82,13 @@ def main(params):
         instance    = instance.reshape(1,1,n_pixel,n_pixel)
         
         # Compute probabilities
+        print('» Estimate probabilities')
         prob = model.predict_instance(instance).detach().cpu().numpy().squeeze()
-        print(prob)
+        print(f'⤷ Probability:\n \
+        {prob}')
         np.save(output_path + '/tmp_prob', prob)
     
-    print('Label to class translation: \n \
+    print('» Label to class translation: \n \
         {}'.format(data_store['label2set']))
     
 params = {
@@ -92,7 +99,7 @@ params = {
 
 'intensity_measure'     : 'pt',
 'n_pixel'               : 40,
-'eta_range'             : [-4, 4],
+'eta_range'             : [-1, 1],
 'phi_range'             : [-np.pi, np.pi],
 
 'jet_preproc_steps'     : ['phi_alignment','centering'],
@@ -107,7 +114,7 @@ params = {
 'L2'                    : 1.e-3,
 'p_drop'                : 0,
 
-'n_epochs'              : 25
+'n_epochs'              : 10
 }
 
 main(params)

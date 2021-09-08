@@ -36,7 +36,6 @@ class cnn(nn.Module):
             nn.Softmax(dim=1)         
         )
         
-        self.set_optimizer()
         
         
     def forward(self, x):
@@ -45,7 +44,7 @@ class cnn(nn.Module):
         return x
     
     
-    def set_optimizer(self):
+    def set_optimizer(self, Dataset):
         Parameters = list(filter(lambda p: p.requires_grad, self.parameters()))
         
         self.optim  = torch.optim.AdamW(
@@ -53,6 +52,14 @@ class cnn(nn.Module):
             self.params.get('lr', 1.e-4),
             betas = self.params.get('betas', [0.9,0.99]),
             weight_decay = self.params.get('L2', 0.0)
+        )
+        
+        n_train_batches = Dataset.n_batches('train')
+        self.lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(
+            self.optim,
+            10 * self.params.get('lr', 1.e-4),
+            epochs = self.params['n_epochs'],
+            steps_per_epoch = n_train_batches
         )
     
     
@@ -78,12 +85,16 @@ class cnn(nn.Module):
                 self.optim.step()
                 
                 train_loss += loss.item()/max_iter
+                
+                self.lr_scheduler.step()
             
             # Validate
             val_loss, top_1_error = self.validate(Dataset)
             
             # Outprint 
-            print(f'Epoch {epoch}\n \
+            lr = np.round(self.lr_scheduler.optimizer.param_groups[0]['lr'], 4)
+            print(f'⤷ Epoch {epoch}\n \
+        Learning rate {lr}\n \
         Train loss {train_loss}\n \
         Validation loss {val_loss}\n \
         Top one error {top_1_error * 100} %')
@@ -142,10 +153,11 @@ class cnn(nn.Module):
                     'epoch': self.epoch,
                     'label2set': self.data_store['label2set']}, output_path+'/model')
     
-    def load(self, path):
+    def load(self, path, load_optim=True):
         state_dicts = torch.load(path)
         self.load_state_dict(state_dicts['net'])
-        self.optim.load_state_dict(state_dicts['optim'])
+        if load_optim:
+            self.optim.load_state_dict(state_dicts['optim'])
         self.epoch = state_dicts['epoch']      
         self.data_store['label2set'] = state_dicts['label2set']
                 

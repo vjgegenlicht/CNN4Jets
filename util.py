@@ -48,15 +48,17 @@ class DataSet:
         self.N_train    = int(9/10 *self.train_split * self.N * self.n_classes)
         self.N_val      = int(1/10 *self.train_split * self.N * self.n_classes)
         self.N_test     = self.n_classes * self.N - self.N_train - self.N_val
-        print(f'Datasplit: \n \
-        Total / Train / Validation / Test \n \
-        {self.N} / {self.N_train} / {self.N_val} / {self.N_test}')
         idx_train       = idx[:self.N_train] 
         idx_val         = idx[self.N_train:self.N_train+self.N_val]
         idx_test        = idx[self.N_train+self.N_val:]
         self.X_train, self.y_train    = self.X[idx_train], self.y[idx_train]
         self.X_val, self.y_val    = self.X[idx_val], self.y[idx_val]
         self.X_test, self.y_test      = self.X[idx_test], self.y[idx_test]
+        
+        data_store['set_sizes'] = {'N_train': self.N_train, 'N_val': self.N_val, 'N_test': self.N_test}
+        print(f'⤷ Datasplit: \n \
+        Total / Train / Validation / Test \n \
+        {self.N * self.n_classes} / {self.N_train} / {self.N_val} / {self.N_test}')
         
         self.save_test()
         self.plot_test()
@@ -69,11 +71,15 @@ class DataSet:
         batch_X     = X[batch_idx]
         batch_y     = y[batch_idx]
         return batch_X, batch_y
-     
+    
+    def n_batches(self, mode):
+        N = eval('self.N_' + mode)
+        N_batches = int(np.floor(N/self.batch_size))
+        return N_batches
 
     def save_test(self):
         '''Saves the test data set for further use.'''
-        print('Saving test image data.')
+        print('⤷ Saving test image data.')
         output_path = self.params['output_path']
         for set in self.label2set.items():
             os.makedirs(output_path + '/image_data/' + set[1], exist_ok=True) 
@@ -84,7 +90,7 @@ class DataSet:
             np.save(output_path + '/image_data/' + set + '/y_test_{}'.format(i), self.y_test[i].detach().to(device='cpu').numpy())
     
     def plot_test(self):
-        print('Plotting test images.')
+        print('⤷ Plotting test images.')
         '''Plots some of the generated detector images.'''
         output_path = self.params['output_path']
         for set in self.label2set.items():
