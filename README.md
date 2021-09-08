@@ -26,7 +26,7 @@ To classify a image, two parser arguments exist:
 
 Using these argument, one can then choose an image file from **./model/image_data** and classify it. For example we can classify an image of the *ttbar* dataset:
 
-`python3 main.py --model=./model/model --classify=./model/image_data/ttbar/X_test_i.npy.
+`$ python3 main.py --model=./model/model --classify=./model/image_data/ttbar/X_test_i.npy`.
 
 The index i must be replaced by an existing image in the **./model/image_data/ttbar** folder. The model then predicts the probabilities of the image to be in each of the classes and saves these probabilities as a numpy array in a *tmp_prob.npy* file in the **./model** folder
 
