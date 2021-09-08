@@ -1,6 +1,6 @@
 # CNN4Jets - Convolutional neural network (CNN) for jet classification
 ## Quickstart:
-To create and train a model, execute the **main.py** file in the shell:
+To create and train a model, execute the *main.py* file in the shell:
 
 `$ python3 main.py`
 
@@ -18,15 +18,15 @@ Now the following things will happen:
 6. Then a training loop will start.
 7. The model will be saved in a *model* file in the folder: **./model**
 
-Now a model exists, that can be used for the classification itself. Creating and training a model will not be done on the computer in the museum. Instead a model file and all additional data will be provided beforehand. 
+Now a model exists, that can be used for the classification itself. Creating and training a model will not be done on the computer in the museum. Instead, a model file and all additional data will be provided beforehand. 
 
 To classify a image, two parser arguments exist:
 
 `--model=<path>` and `--classify=<path>`.
 
-Using these argument, one can then choose an image file from **./model/image_data** and classify it. For example we can classify an image of the *ttbar* dataset:
+Using these arguments, one can then choose an image file from **./model/image_data** and classify it. For example, we can classify an image of the *ttbar* dataset:
 
-`python3 main.py --model=./model/model --classify=./model/image_data/ttbar/X_test_i.npy.
+`$ python3 main.py --model=./model/model --classify=./model/image_data/ttbar/X_test_i.npy`.
 
 The index i must be replaced by an existing image in the **./model/image_data/ttbar** folder. The model then predicts the probabilities of the image to be in each of the classes and saves these probabilities as a numpy array in a *tmp_prob.npy* file in the **./model** folder
 
