@@ -20,7 +20,7 @@ Now the following things will happen:
 
 Now a model exists, that can be used for the classification itself. Creating and training a model will not be done on the computer in the museum. Instead, a model file and all additional data will be provided beforehand. 
 
-To classify a image, two parser arguments exist:
+To classify an image, two parser arguments exist:
 
 `--model=<path>` and `--classify=<path>`.
 
