@@ -6,7 +6,7 @@ To create and train a model, execute the *main.py* file in the shell:
 
 Now the following things will happen:
 
-1. The model Loads the data from the specified txt files, e.g.:
+1. The model loads the data from the specified txt files, e.g.:
 
 `'input_paths'           : {'ttbar'    : './conv_out_ttbar.txt',
                            'qcdJets'  : './conv_out_qcdJets.txt'}`.
@@ -20,7 +20,7 @@ Now the following things will happen:
 
 Now a model exists, that can be used for the classification itself. Creating and training a model will not be done on the computer in the museum. Instead, a model file and all additional data will be provided beforehand. 
 
-To classify a image, two parser arguments exist:
+To classify an image, two parser arguments exist:
 
 `--model=<path>` and `--classify=<path>`.
 
