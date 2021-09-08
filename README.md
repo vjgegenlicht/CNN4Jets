@@ -6,7 +6,7 @@ To create and train a model, execute the *main.py* file in the shell:
 
 Now the following things will happen:
 
-1. The model Loads the data from the specified txt files, e.g.:
+1. The model loads the data from the specified txt files, e.g.:
 
 `'input_paths'           : {'ttbar'    : './conv_out_ttbar.txt',
                            'qcdJets'  : './conv_out_qcdJets.txt'}`.
