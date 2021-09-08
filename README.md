@@ -10,6 +10,7 @@ Now the following things will happen:
 
 `'input_paths'           : {'ttbar'    : './conv_out_ttbar.txt',
                            'qcdJets'  : './conv_out_qcdJets.txt'}`.
+                           
 2. The model will create a CNN network.
 3. The model creates a dataset from the loaded txt files.
 4. A test set of images will be saved as numpy arrays in **./model/image_data** for each of the classes.
