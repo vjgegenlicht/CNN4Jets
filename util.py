@@ -1,6 +1,5 @@
 import numpy as np
 import torch
-from sklearn.model_selection import train_test_split
 from constit2images import *
 
 def load_data(input_path):
@@ -45,8 +44,8 @@ class DataSet:
         
         # Split in ([train,validation], [test])
         idx             = np.random.permutation(self.X.shape[0])
-        self.N_train    = int(9/10 *self.train_split * self.N * self.n_classes)
-        self.N_val      = int(1/10 *self.train_split * self.N * self.n_classes)
+        self.N_train    = int(8/10 *self.train_split * self.N * self.n_classes)
+        self.N_val      = int(2/10 *self.train_split * self.N * self.n_classes)
         self.N_test     = self.n_classes * self.N - self.N_train - self.N_val
         idx_train       = idx[:self.N_train] 
         idx_val         = idx[self.N_train:self.N_train+self.N_val]
@@ -61,7 +60,8 @@ class DataSet:
         {self.N * self.n_classes} / {self.N_train} / {self.N_val} / {self.N_test}')
         
         self.save_test()
-        self.plot_test()
+        if self.params.get('plot_test', False):
+            self.plot_test()
 
     def __call__(self, mode, idx):
         X, y = eval('self.X_'+mode), eval('self.y_'+mode)
@@ -109,6 +109,7 @@ class DataSet:
             set     = self.label2set[label.item()]
             image   = self.X_test[i].detach().cpu().numpy().squeeze()
             plt.figure(figsize=(6, 6), dpi=160) 
+            #image[image != 0] = np.log(image[image != 0])
             plt.imshow(image)
             plt.xlabel(r"$\eta$", fontsize=14)
             plt.ylabel(r"$\phi$", fontsize=14)
@@ -127,7 +128,6 @@ class DataSet:
             idx = np.arange(self.data[set].shape[0])
             self.data[set] = self.data[set][np.random.choice(idx, self.N),:,:]
             
-        
     def trasform_to_images(self):
         '''Transforms the data to images.'''
         imgs        = []
@@ -136,8 +136,8 @@ class DataSet:
             jets    = self.data[set]
 
             # Extract observables from jets array
-            E       = jets[:,:,1]
-            px      = jets[:,:,0]
+            E       = jets[:,:,0]
+            px      = jets[:,:,1]
             py      = jets[:,:,2]
             pz      = jets[:,:,3]
 
@@ -152,6 +152,8 @@ class DataSet:
             pz_jet  = pz.sum(axis=1)
             pt_jet  = compute_pt(px_jet, py_jet)
             m_jet   = compute_m(E_jet, px_jet, py_jet, pz_jet)
+            plt.hist(m_jet, bins=np.linspace(0,300,60))
+            plt.savefig("Mass"+set+".png", format="png")
             intensity = eval(self.params.get('intensity_measure', 'pt'))
 
             # Jet Preprocessing
@@ -169,7 +171,6 @@ class DataSet:
             imgs.append(images_preproc)
             
         return imgs
-        
         
     def generate_labels(self):
         '''Generates the labels for each class.'''

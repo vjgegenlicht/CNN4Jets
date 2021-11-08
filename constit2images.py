@@ -31,6 +31,7 @@ def image_preprocessing(images, params):
 
     # Normalizing the Images
     if 'normalization' in image_preproc_steps:
+        #images 	= np.log(images)
         norm    = np.clip( np.sum( images, axis=(1,2) ), 1.e-5, np.inf )
         images  = images/norm[:,None,None]
     
@@ -139,7 +140,6 @@ def plot_images(images, set, params):
     #plt.rc("text", usetex=True)
     #plt.rc("font", family="serif")
     #plt.rc("text.latex", preamble=r"\usepackage{amsmath}")
-    plt.imshow(np.mean(images, axis=0))
     plt.title("Average", fontsize=16)
     plt.xlabel("eta", fontsize=14)
     plt.ylabel("phi", fontsize=14)

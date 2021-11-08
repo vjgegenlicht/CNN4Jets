@@ -3,48 +3,68 @@ import torch
 import torch.nn as nn
 import os
 
+from torch.nn.modules import conv
+
 class cnn(nn.Module):
     def __init__(self, n_classes, params, data_store):
         super(cnn, self).__init__()
         
-        self.params     = params
-        self.data_store = data_store
-        self.n_classes  = n_classes
+        self.params             = params
+        self.data_store         = data_store
+        self.n_classes          = n_classes
+        self.lr_scheduler_mode  = self.params.get("lr_scheduler", "one_cycle_lr")
+
         
         self.batch_size = params.get('batch_size', 1024)
         
         self.loss       = nn.CrossEntropyLoss(reduction='mean')
         
-        p_drop          = self.params.get('p_drop', 0.3)
         self.layers = nn.Sequential(
-            nn.Conv2d(1,8,4),
-            nn.ReLU(),
-            nn.Dropout2d(p=p_drop),
-            nn.Conv2d(8,8,4),
-            nn.ReLU(),
-            nn.Dropout2d(p=p_drop),
-            nn.MaxPool2d(4),
-            nn.Conv2d(8,8,4),
-            nn.ReLU(),
-            nn.Dropout2d(p=p_drop),
+            self.convolution(1,128,4),
+            self.convolution(128,64,4),
+            nn.MaxPool2d(2),
+            self.convolution(64,64,4),
+            self.convolution(64,64,4),
             nn.MaxPool2d(2),
             nn.Flatten(),
-            nn.Linear(32,32),
-            nn.ReLU(),
-            nn.Linear(32,self.n_classes),
-            nn.ReLU(),
+            self.linear(4096,64),
+            self.linear(64,256),
+            self.linear(256,256),
+            self.linear(256, self.n_classes),
             nn.Softmax(dim=1)         
         )
         
+    def convolution(self, in_channels, out_channels, size):
+        p_drop          = self.params.get('p_drop', 0.3)
+        convolution     = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, size, padding=1),
+            nn.ReLU(),
+            nn.Dropout2d(p=p_drop)
+        )
+        return convolution
+    
+    def linear(self, in_nodes, out_nodes):
+        linear          = nn.Sequential(
+            nn.Linear(in_nodes, out_nodes),
+            nn.ReLU(),
+        )
+        return linear
         
-        
+
     def forward(self, x):
+        i = 0 
         for layer in self.layers:  
             x = layer(x)
+            #print(x.shape)
+            if self.params.get('output_layers', False):
+                output_path = self.params['output_path']
+                os.makedirs(output_path + '/layers/', exist_ok=True)
+                np.save(output_path + '/layers/' + 'layer_{}.npy'.format(i), x.detach().to(device='cpu').numpy())
+            i += 1
         return x
     
     
-    def set_optimizer(self, Dataset):
+    def set_optimizer(self):
         Parameters = list(filter(lambda p: p.requires_grad, self.parameters()))
         
         self.optim  = torch.optim.AdamW(
@@ -53,14 +73,24 @@ class cnn(nn.Module):
             betas = self.params.get('betas', [0.9,0.99]),
             weight_decay = self.params.get('L2', 0.0)
         )
+
+
+    def set_scheduler(self, Dataset):
         
         n_train_batches = Dataset.n_batches('train')
-        self.lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(
-            self.optim,
-            10 * self.params.get('lr', 1.e-4),
-            epochs = self.params['n_epochs'],
-            steps_per_epoch = n_train_batches
-        )
+        if self.lr_scheduler_mode == "one_cycle_lr":
+            self.lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(
+                self.optim,
+                10 * self.params.get('lr', 1.e-4),
+                epochs = self.params['n_epochs'],
+                steps_per_epoch = n_train_batches
+            )
+        elif self.lr_scheduler_mode == "reduce_on_plateau":
+            self.lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+                self.optim,
+                mode="min",
+                factor = 0.1,
+            )
     
     
     def train(self, Dataset):
@@ -86,10 +116,13 @@ class cnn(nn.Module):
                 
                 train_loss += loss.item()/max_iter
                 
-                self.lr_scheduler.step()
+                if self.lr_scheduler_mode == "one_cycle_lr":
+                    self.lr_scheduler.step()
             
             # Validate
             val_loss, top_1_error = self.validate(Dataset)
+            if self.lr_scheduler_mode == "reduce_on_plateau":
+                self.lr_scheduler.step(val_loss)
             
             # Outprint 
             lr = np.round(self.lr_scheduler.optimizer.param_groups[0]['lr'], 4)
@@ -110,9 +143,8 @@ class cnn(nn.Module):
             batch_X, batch_y = Dataset('val', iter)
             predict_y   = self(batch_X)
             loss        = self.loss(predict_y, batch_y)
-            val_loss    += loss.item()/max_iter
-            top_1_error += np.mean(np.abs(np.argmax(predict_y.detach().to(device='cpu').numpy(), axis=1)\
-                                   -batch_y.detach().to(device='cpu').numpy()))/max_iter
+            val_loss    += loss.item() / max_iter
+            top_1_error += np.mean(np.where(np.argmax(predict_y.detach().to(device='cpu').numpy(), axis=1) != batch_y.detach().to(device='cpu').numpy(), True, False)) / max_iter
         return val_loss, top_1_error
     
     

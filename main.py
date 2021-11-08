@@ -49,16 +49,18 @@ def main(params):
         
         #Set optimizer
         print('» Setting optimizer.')
-        model.set_optimizer(Dataset)
+        model.set_optimizer()
+        model.set_scheduler(Dataset)
     
         # Train the model
-        print('» Training model.')
+        print('» Training the model.')
         model.train(Dataset)
 
         # Generate predictions for the test data set
         #est_true_y, test_predict_prob, test_predict_y = model.predict_test(Dataset)
         
         # Save the model
+        print('» Saving the model.')
         model.save()
         
     else:
@@ -72,6 +74,7 @@ def main(params):
         # Load the instance
         print('» Loading Instance')
         instance = np.load(args.classify)
+
         try:
             instance = torch.from_numpy(instance)
         except:
@@ -92,29 +95,33 @@ def main(params):
         {}'.format(data_store['label2set']))
     
 params = {
-'input_paths'           : {'ttbar'    : './conv_out_ttbar.txt',
-                           'qcdJets'  : './conv_out_qcdJets.txt'},
+'input_paths'           : {'ttbar'    : './events_ttbar.txt',
+                           'qcdJets'  : './events_qcdjets.txt',
+                           'photons'  : './events_photons.txt'},
 'output_path'           : './model',
 'image_output_path'     : './images',
 
 'intensity_measure'     : 'pt',
 'n_pixel'               : 40,
-'eta_range'             : [-1, 1],
+'eta_range'             : [-2, 2],
 'phi_range'             : [-np.pi, np.pi],
 
 'jet_preproc_steps'     : ['phi_alignment','centering'],
 'image_preproc_steps'   : ['normalization'],
-'train_split'           : 0.995,
-'batch_size'            : 1000, 
+'train_split'           : 0.999,
+'batch_size'            : 500, 
 
-'n_images'              : 10,
+'n_images'              : 0,
+'output_layers'         : True,
+'plot_test'             : True, 
 
-'lr'                    : 1.e-3,
+'lr'                    : 1.e-2,
+'lr_scheduler'          : 'one_cycle_lr',
 'betas'                 : [0.9,0.99],
-'L2'                    : 1.e-3,
-'p_drop'                : 0,
+'L2'                    : 0.0,
+'p_drop'                : 0.0,
 
-'n_epochs'              : 100
+'n_epochs'              : 20
 }
 
 main(params)
