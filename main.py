@@ -114,7 +114,7 @@ params = {
 'L2'                    : 1.e-3,
 'p_drop'                : 0,
 
-'n_epochs'              : 10
+'n_epochs'              : 100
 }
 
 main(params)
