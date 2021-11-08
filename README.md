@@ -51,4 +51,4 @@ The index i must be replaced by an existing image in the **./model/image_data/tt
 
 -[x] Write validation
 
--[] Additional learning rate scheduler
+-[x] Additional learning rate scheduler
