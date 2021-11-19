@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from constit2images import *
+import logging
 
 def load_data(input_path):
     '''Load the data from the given path and transforms it to a 3d numpy array [n_jets, n_constituents, 4].
@@ -55,7 +56,7 @@ class DataSet:
         self.X_test, self.y_test      = self.X[idx_test], self.y[idx_test]
         
         data_store['set_sizes'] = {'N_train': self.N_train, 'N_val': self.N_val, 'N_test': self.N_test}
-        print(f'⤷ Datasplit: \n \
+        logging.info(f'⤷ Datasplit: \n \
         Total / Train / Validation / Test \n \
         {self.N * self.n_classes} / {self.N_train} / {self.N_val} / {self.N_test}')
         
@@ -79,7 +80,7 @@ class DataSet:
 
     def save_test(self):
         '''Saves the test data set for further use.'''
-        print('⤷ Saving test image data.')
+        logging.info('⤷ Saving test image data.')
         output_path = self.params['output_path']
         for set in self.label2set.items():
             os.makedirs(output_path + '/image_data/' + set[1], exist_ok=True) 
@@ -90,7 +91,7 @@ class DataSet:
             np.save(output_path + '/image_data/' + set + '/y_test_{}'.format(i), self.y_test[i].detach().to(device='cpu').numpy())
     
     def plot_test(self):
-        print('⤷ Plotting test images.')
+        logging.info('⤷ Plotting test images.')
         '''Plots some of the generated detector images.'''
         output_path = self.params['output_path']
         for set in self.label2set.items():
@@ -152,8 +153,8 @@ class DataSet:
             pz_jet  = pz.sum(axis=1)
             pt_jet  = compute_pt(px_jet, py_jet)
             m_jet   = compute_m(E_jet, px_jet, py_jet, pz_jet)
-            plt.hist(m_jet, bins=np.linspace(0,300,60))
-            plt.savefig("Mass"+set+".png", format="png")
+            #plt.hist(m_jet, bins=np.linspace(0,300,60))
+            #plt.savefig("Mass"+set+".png", format="png")
             intensity = eval(self.params.get('intensity_measure', 'pt'))
 
             # Jet Preprocessing

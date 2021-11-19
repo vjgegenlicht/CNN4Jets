@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import os
+import logging
 
 from torch.nn.modules import conv
 
@@ -11,27 +12,49 @@ class cnn(nn.Module):
         
         self.params             = params
         self.data_store         = data_store
+        self.device             = data_store["device"]
         self.n_classes          = n_classes
+        logging.info(f"Classes: {self.n_classes}")
         self.lr_scheduler_mode  = self.params.get("lr_scheduler", "one_cycle_lr")
 
-        
+        self.forward_passes     = 0
+
         self.batch_size = params.get('batch_size', 1024)
         
         self.loss       = nn.CrossEntropyLoss(reduction='mean')
         
         self.layers = nn.Sequential(
-            self.convolution(1,128,4),
-            self.convolution(128,64,4),
+            self.convolution(1,8,4),
+            self.convolution(8,8,4),
             nn.MaxPool2d(2),
-            self.convolution(64,64,4),
-            self.convolution(64,64,4),
+            #nn.MaxPool2d(4),
+            self.convolution(8,8,4),
             nn.MaxPool2d(2),
             nn.Flatten(),
-            self.linear(4096,64),
-            self.linear(64,256),
-            self.linear(256,256),
-            self.linear(256, self.n_classes),
-            nn.Softmax(dim=1)         
+            self.linear(648,32),
+            #self.linear(128,32),
+            ####self.linear(192,32),
+            ###self.linear(972,32),
+            self.linear(32,32),
+            self.linear(32,32),
+            self.linear(32,32),
+            self.linear(32,32),
+            self.linear(32,self.n_classes),
+            nn.Softmax(dim=1)
+
+            ### Other Architecture ###
+            #self.convolution(1,128,4),
+            #self.convolution(128,64,4),
+            #nn.MaxPool2d(2),
+            #self.convolution(64,64,4),
+            #self.convolution(64,64,4),
+            #nn.MaxPool2d(2),
+            #nn.Flatten(),
+            #self.linear(4096,64),
+            #self.linear(64,256),
+            #self.linear(256,256),
+            #self.linear(256, self.n_classes),
+            #nn.Softmax(dim=1)         
         )
         
     def convolution(self, in_channels, out_channels, size):
@@ -49,18 +72,24 @@ class cnn(nn.Module):
             nn.ReLU(),
         )
         return linear
+    
         
 
     def forward(self, x):
         i = 0 
+        if self.forward_passes == 0:
+            logging.info("Shape of the model:")
         for layer in self.layers:  
             x = layer(x)
-            #print(x.shape)
+
+            if self.forward_passes == 0:
+                logging.info(f"{x.shape}")
             if self.params.get('output_layers', False):
                 output_path = self.params['output_path']
                 os.makedirs(output_path + '/layers/', exist_ok=True)
                 np.save(output_path + '/layers/' + 'layer_{}.npy'.format(i), x.detach().to(device='cpu').numpy())
             i += 1
+        self.forward_passes += 1
         return x
     
     
@@ -98,7 +127,7 @@ class cnn(nn.Module):
         n_epochs    = self.params['n_epochs']
         ts_size     = Dataset.N_train 
         max_iter    = ts_size // self.batch_size
-        
+        logging.info(f"Epochs: {n_epochs}, max_iter: {max_iter}")
         self.epoch  = 0
         for epoch in range(n_epochs):
             self.epoch += 1
@@ -124,9 +153,9 @@ class cnn(nn.Module):
             if self.lr_scheduler_mode == "reduce_on_plateau":
                 self.lr_scheduler.step(val_loss)
             
-            # Outprint 
+            # Outprint
             lr = np.round(self.lr_scheduler.optimizer.param_groups[0]['lr'], 4)
-            print(f'⤷ Epoch {epoch}\n \
+            logging.info(f'⤷ Epoch {epoch}\n \
         Learning rate {lr}\n \
         Train loss {train_loss}\n \
         Validation loss {val_loss}\n \
