@@ -1,6 +1,9 @@
 import numpy as np
+from scipy import ndimage
 import matplotlib.pyplot as plt
 import os
+import PIL
+
 
 def jet_preprocessing(eta, phi, intensity, params):
 
@@ -25,18 +28,51 @@ def jet_preprocessing(eta, phi, intensity, params):
         
     return eta_preproc, phi_preproc
 
+
 def image_preprocessing(images, params):
 
     image_preproc_steps = params.get('image_preproc_steps', [])
 
     # Normalizing the Images
-    if 'normalization' in image_preproc_steps:
+    #if 'normalization' in image_preproc_steps:
         #images 	= np.log(images)
-        norm    = np.clip( np.sum( images, axis=(1,2) ), 1.e-5, np.inf )
-        images  = images/norm[:,None,None]
+    norm    = np.clip( np.sum( images, axis=(1,2) ), 1.e-5, np.inf )
+    images  = images/norm[:,None,None]
     
     return images
 
+
+def drawing_preprocessing(image, params):
+    '''Apply a preprocessing procedure to the hand drawn image.
+        args:
+            image       : [array]   hand drawn images as numpy array
+            params      : [dict]    dictionary holding the parameters
+    '''
+    # Parameters 
+    n_pixel     = params.get('n_pixel', 10)
+    center      = np.array([int(np.ceil(n_pixel/2)), \
+                            int(np.ceil(n_pixel/2))])
+    center_of_mass  = ndimage.measurements.center_of_mass(image)
+    roll_values = ( center[0] - int(center_of_mass[0]), \
+                    center[1] - int(center_of_mass[1]) ) 
+    pad         = int(np.ceil(n_pixel/2))
+
+    # pad and center the image
+    image    = np.pad(image, ((pad,pad), (pad,pad)), mode="constant", constant_values=(0,0))
+    image   = np.roll(image, (roll_values), axis=(0,1))
+
+    # crop image back to original size
+    x,y         = image.shape
+    start_x     = x//2 - int(np.ceil(n_pixel/2))
+    start_y     = y//2 - int(np.ceil(n_pixel/2))
+    image       = image[start_x:start_x+n_pixel,\
+                        start_y:start_y+n_pixel]
+
+    # normalize image
+    norm        = np.clip( np.sum( image ), 1.e-5, np.inf )
+    image       = image / norm
+
+    return image
 
 def make_image(eta, phi, intensity, params):
     '''Bins the (eta, phi)-plane and computes the integrated bin-wise intensity.
@@ -73,6 +109,7 @@ def make_image(eta, phi, intensity, params):
 
     return calo
 
+
 def compute_m(E, px, py, pz):
     '''Computes the invariant mass.
         args:
@@ -82,6 +119,7 @@ def compute_m(E, px, py, pz):
             pz      : [array]   array of momenta in z-direction
     '''
     return np.sqrt(E**2-px**2-py**2-pz**2)
+ 
     
 def compute_pt(px, py):
     ''' Computes transverse momentum from momenta in x and y direction.
@@ -129,8 +167,8 @@ def plot_images(images, set, params):
             images  : [array]   array holding the images
             params  : [dict]    dictionary holding the parameters
     '''
-    image_output_path = params.get('image_output_path', './images/')
-    os.makedirs(image_output_path + '/images/' + set, exist_ok=True) 
+    
+    os.makedirs(params["output_path"] + "/images/" + set, exist_ok=True) 
 
     n_pixel     = params.get('n_pixel', 10)
     eta_range   = params['eta_range']
@@ -140,17 +178,20 @@ def plot_images(images, set, params):
     #plt.rc("text", usetex=True)
     #plt.rc("font", family="serif")
     #plt.rc("text.latex", preamble=r"\usepackage{amsmath}")
-    plt.title("Average", fontsize=16)
+    '''plt.title("Average", fontsize=16)
     plt.xlabel("eta", fontsize=14)
     plt.ylabel("phi", fontsize=14)
     plt.xticks(np.linspace(0,n_pixel-1,5), np.round(np.linspace(eta_range[0],eta_range[1], 5),1))
     plt.yticks(np.linspace(0,n_pixel-1,5), np.round(np.linspace(phi_range[0],phi_range[1], 5),1))
-    plt.savefig(image_output_path + "/" + set + "/average", dpi=160, format="png")
+    plt.savefig(image_output_path + "/" + set + "/average", dpi=160, format="png")'''
 
     for i in range(params.get('n_images', 10)):
-        plt.imshow(images[i])
+        img = images[i]
+        img = PIL.Image.fromarray(img)
+        img.save(params["output_path"] + "/images/" + set + "/img_{}.png".format(i))
+        '''plt.imshow(images[i])
         plt.xlabel("eta", fontsize=14)
         plt.ylabel("phi", fontsize=14)
         plt.xticks(np.linspace(0,n_pixel-1,5), np.round(np.linspace(eta_range[0],eta_range[1], 5),1))
         plt.yticks(np.linspace(0,n_pixel-1,5), np.round(np.linspace(phi_range[0],phi_range[1], 5),1))
-        plt.savefig(image_output_path + "/" + set + "/img_{}.png".format(i), dpi=160, format="png")
+        plt.savefig(image_output_path + "/" + set + "/img_{}.png".format(i), dpi=160, format="png")'''
