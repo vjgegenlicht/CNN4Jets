@@ -1,4 +1,6 @@
 # CNN4Jets - Convolutional neural network (CNN) for jet classification
+## Pretrained Model:
+A pretrained model can be downloaded from: https://drive.google.com/drive/folders/1sKZEqtc8Gj44FUUwBgmfDq0N7OGoiQsi?usp=sharing
 ## Quickstart:
 To create and train a model, execute the *main.py* file in the shell:
 
