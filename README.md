@@ -37,20 +37,20 @@ The index i must be replaced by an existing image in the **./model/image_data/tt
 
 ## Todo:
 
--[x] install Madgraph, ROOT & Delphes
+  -[x] install Madgraph, ROOT & Delphes
 
--[x] Make calorimater images from delphes output
+  -[x] Make calorimater images from delphes output
 
--[x] Write params card for constit2images
+  -[x] Write params card for constit2images
 
--[x] Preprocessing of the jet images
+  -[x] Preprocessing of the jet images
 
--[x] Train/test split in Dataset
+  -[x] Train/test split in Dataset
 
--[x] Write model architecture
+  -[x] Write model architecture
 
--[x] Write training loop
+  -[x] Write training loop
 
--[x] Write validation
+  -[x] Write validation
 
--[x] Additional learning rate scheduler
+  -[x] Additional learning rate scheduler
