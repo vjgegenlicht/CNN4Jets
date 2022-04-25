@@ -82,8 +82,7 @@ class cnn(nn.Module):
             #logging.info("Shape of the model:")
         for layer in self.layers:  
             x = layer(x)
-            print(x.shape)
-
+   
             #if self.forward_passes == 0:
                 #logging.info(f"{x.shape}")
             if self.params.get('output_layers', False):
