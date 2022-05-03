@@ -1,0 +1,11 @@
+INFO:root:Parameters: 
+ {'input_paths': {'ttbar': 'Data/events_ttbar.txt', 'qcdJets': 'Data/events_qcdjets.txt', 'photons': 'Data/events_photons.txt', 'smileys': 'Data/smileys.npy'}, 'n_classes': 4, 'output_path': './output//model', 'image_output_path': './images', 'intensity_measure': 'pt', 'n_pixel': 40, 'eta_range': [-2, 2], 'phi_range': [-3.141592653589793, 3.141592653589793], 'jet_preproc_steps': ['phi_alignment', 'centering'], 'image_preproc_steps': ['normalization'], 'train_split': 0.95, 'batch_size': 512, 'n_images': 0, 'output_layers': False, 'plot_test': True, 'check_calibration': False, 'lr': 0.0005, 'lr_scheduler': 'one_cycle_lr', 'betas': [0.9, 0.99], 'L2': 0.0, 'p_drop': 0.3, 'n_epochs': 100}
+INFO:root:» Creating model.
+INFO:root:» Loading Instance
+INFO:root:» Loading model state.
+INFO:root:\u2937 Loading image as PNG
+INFO:root:» Estimate probabilities
+INFO:root:\u2937 Probability:
+ [1.0151669e-22 1.0151669e-22 1.0000000e+00 8.6454932e-18]
+INFO:root:» Label to class translation: 
+         {'photons': 0, 'qcdjets': 1, 'smileys': 2, 'ttbar': 3}

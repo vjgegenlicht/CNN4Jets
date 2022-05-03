@@ -23,15 +23,15 @@ def main(params):
     data_store  = {}
     
     use_cuda    = torch.cuda.is_available()
-    device      = torch.device("cuda:0" if use_cuda else "cpu")
+    device      = torch.device("cuda:0" if use_cuda else use_cuda)
     data_store["device"] = device
     
     # Create output folder
-    now = datetime.now()
-    dt_string = now.strftime("%d-%m-%Y_%H:%M:%S")
-    params["output_path"] = "./output/" + dt_string + params["output_path"]
+   # now = datetime.now()
+   # dt_string = now.strftime("%d-%m-%Y_%H_%M_%S")
+    params["output_path"] = "./output/" + params["output_path"]
     os.makedirs(params["output_path"] + "/log.log", exist_ok=True)
-    logging.basicConfig(filename = params["output_path"] + 'log.log', level=logging.INFO)
+    logging.basicConfig(filename = params["output_path"] + 'log.log', level=logging.INFO, filemode='w')
     logging.info(f"Parameters: \n {params}")
     output_path = params['output_path']
     os.makedirs(output_path, exist_ok=True)
@@ -102,8 +102,11 @@ def main(params):
         logging.info('» Estimate probabilities')
         prob = model.predict_instance(instance).detach().cpu().numpy().squeeze()
         logging.info(f'⤷ Probability:\n {prob}')
-        np.save(output_path + '/tmp_prob', prob)
+        # np.save(output_path + '/tmp_prob', prob)
+        np.savetxt(output_path + '/probabilites.txt', prob)
     
+
+
     logging.info('» Label to class translation: \n \
         {}'.format(data_store['label2set']))
 
